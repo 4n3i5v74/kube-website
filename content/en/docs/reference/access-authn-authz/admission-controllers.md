@@ -110,7 +110,7 @@ This admission controller allows all pods into the cluster. It is deprecated bec
 This admission controller modifies every new Pod to force the image pull policy to Always. This is useful in a
 multitenant cluster so that users can be assured that their private images can only be used by those
 who have the credentials to pull them. Without this admission controller, once an image has been pulled to a
-node, any pod from any user can use it simply by knowing the image's name (assuming the Pod is
+node, any pod from any user can use it by knowing the image's name (assuming the Pod is
 scheduled onto the right node), without any authorization check against the image. When this admission controller
 is enabled, images are always pulled prior to starting containers, which means valid credentials are
 required.
@@ -462,8 +462,6 @@ and the [example of Limit Range](/docs/tasks/administer-cluster/manage-resources
 
 ### MutatingAdmissionWebhook {#mutatingadmissionwebhook}
 
-{{< feature-state for_k8s_version="v1.13" state="beta" >}}
-
 This admission controller calls any mutating webhooks which match the request. Matching
 webhooks are called in serial; each one may modify the object if it desires.
 
@@ -474,7 +472,7 @@ If a webhook called by this has side effects (for example, decrementing quota) i
 webhooks or validating admission controllers will permit the request to finish.
 
 If you disable the MutatingAdmissionWebhook, you must also disable the
-`MutatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1beta1`
+`MutatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1`
 group/version via the `--runtime-config` flag (both are on by default in
 versions >= 1.9).
 
@@ -486,8 +484,6 @@ versions >= 1.9).
    different when read back.
    * Setting originally unset fields is less likely to cause problems than
      overwriting fields set in the original request. Avoid doing the latter.
- * This is a beta feature. Future versions of Kubernetes may restrict the types of
-   mutations these webhooks can make.
  * Future changes to control loops for built-in resources or third-party resources
    may break webhooks that work well today. Even when the webhook installation API
    is finalized, not all possible webhook behaviors will be guaranteed to be supported
@@ -669,13 +665,6 @@ allowVolumeExpansion: true
 
 For more information about persistent volume claims, see [PersistentVolumeClaims](/docs/concepts/storage/persistent-volumes/#persistentvolumeclaims).
 
-### PodPreset {#podpreset}
-
-This admission controller injects a pod with the fields specified in a matching PodPreset.
-See also [PodPreset concept](/docs/concepts/workloads/pods/podpreset/) and
-[Inject Information into Pods Using a PodPreset](/docs/tasks/inject-data-application/podpreset)
-for more information.
-
 ### PodSecurityPolicy {#podsecuritypolicy}
 
 This admission controller acts on creation and modification of the pod and determines if it should be admitted
@@ -773,8 +762,6 @@ This admission controller {{< glossary_tooltip text="taints" term_id="taint" >}}
 
 ### ValidatingAdmissionWebhook {#validatingadmissionwebhook}
 
-{{< feature-state for_k8s_version="v1.13" state="beta" >}}
-
 This admission controller calls any validating webhooks which match the request. Matching
 webhooks are called in parallel; if any of them rejects the request, the request
 fails. This admission controller only runs in the validation phase; the webhooks it calls may not
@@ -785,32 +772,15 @@ If a webhook called by this has side effects (for example, decrementing quota) i
 webhooks or other validating admission controllers will permit the request to finish.
 
 If you disable the ValidatingAdmissionWebhook, you must also disable the
-`ValidatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1beta1`
+`ValidatingWebhookConfiguration` object in the `admissionregistration.k8s.io/v1`
 group/version via the `--runtime-config` flag (both are on by default in
 versions 1.9 and later).
 
 
 ## Is there a recommended set of admission controllers to use?
 
-Yes. For Kubernetes version 1.10 and later, the recommended admission controllers are enabled by default (shown [here](/docs/reference/command-line-tools-reference/kube-apiserver/#options)), so you do not need to explicitly specify them. You can enable additional admission controllers beyond the default set using the `--enable-admission-plugins` flag (**order doesn't matter**).
+Yes. The recommended admission controllers are enabled by default (shown [here](/docs/reference/command-line-tools-reference/kube-apiserver/#options)), so you do not need to explicitly specify them. You can enable additional admission controllers beyond the default set using the `--enable-admission-plugins` flag (**order doesn't matter**).
 
 {{< note >}}
 `--admission-control` was deprecated in 1.10 and replaced with `--enable-admission-plugins`.
 {{< /note >}}
-
-For Kubernetes 1.9 and earlier, we recommend running the following set of admission controllers using the `--admission-control` flag (**order matters**).
-
-* v1.9
-
-  ```shell
-  --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,DefaultTolerationSeconds,MutatingAdmissionWebhook,ValidatingAdmissionWebhook,ResourceQuota
-  ```
-
-  * It's worth reiterating that in 1.9, these happen in a mutating phase
-and a validating phase, and that for example `ResourceQuota` runs in the validating
-phase, and therefore is the last admission controller to run.
-`MutatingAdmissionWebhook` appears before it in this list, because it runs
-in the mutating phase.
-
-    For earlier versions, there was no concept of validating versus mutating and the
-admission controllers ran in the exact order specified.

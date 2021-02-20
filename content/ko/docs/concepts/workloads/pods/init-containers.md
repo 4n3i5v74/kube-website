@@ -1,4 +1,6 @@
 ---
+
+
 title: 초기화 컨테이너
 content_type: concept
 weight: 40
@@ -47,9 +49,9 @@ weight: 40
 또한, 초기화 컨테이너는 `lifecycle`, `livenessProbe`, `readinessProbe` 또는 `startupProbe` 를 지원하지 않는다.
 왜냐하면 초기화 컨테이너는 파드가 준비 상태가 되기 전에 완료를 목표로 실행되어야 하기 때문이다.
 
-만약 다수의 초기화 컨테이너가 파드에 지정되어 있다면, Kubelet은 해당 초기화 컨테이너들을
+만약 다수의 초기화 컨테이너가 파드에 지정되어 있다면, kubelet은 해당 초기화 컨테이너들을
 한 번에 하나씩 실행한다. 각 초기화 컨테이너는 다음 컨테이너를 실행하기 전에 꼭 성공해야 한다.
-모든 초기화 컨테이너들이 실행 완료되었을 때, Kubelet은 파드의 애플리케이션 컨테이너들을
+모든 초기화 컨테이너들이 실행 완료되었을 때, kubelet은 파드의 애플리케이션 컨테이너들을
 초기화하고 평소와 같이 실행한다.
 
 ## 초기화 컨테이너 사용하기
@@ -131,6 +133,7 @@ spec:
 ```shell
 kubectl apply -f myapp.yaml
 ```
+출력 결과는 다음과 같다.
 ```
 pod/myapp-pod created
 ```
@@ -139,6 +142,7 @@ pod/myapp-pod created
 ```shell
 kubectl get -f myapp.yaml
 ```
+출력 결과는 다음과 같다.
 ```
 NAME        READY     STATUS     RESTARTS   AGE
 myapp-pod   0/1       Init:0/2   0          6m
@@ -148,6 +152,7 @@ myapp-pod   0/1       Init:0/2   0          6m
 ```shell
 kubectl describe -f myapp.yaml
 ```
+출력 결과는 다음과 같다.
 ```
 Name:          myapp-pod
 Namespace:     default
@@ -222,6 +227,7 @@ spec:
 ```shell
 kubectl apply -f services.yaml
 ```
+출력 결과는 다음과 같다.
 ```
 service/myservice created
 service/mydb created
@@ -233,6 +239,7 @@ service/mydb created
 ```shell
 kubectl get -f myapp.yaml
 ```
+출력 결과는 다음과 같다.
 ```
 NAME        READY     STATUS    RESTARTS   AGE
 myapp-pod   1/1       Running   0          9m
@@ -255,7 +262,7 @@ myapp-pod   1/1       Running   0          9m
 
 파드는 모든 초기화 컨테이너가 성공되기 전까지 `Ready` 될 수 없다. 초기화 컨테이너의 포트는
 서비스 하에 합쳐지지 않는다. 초기화 중인 파드는 `Pending` 상태이지만
-`Initialized` 가 참이 되는 조건을 가져야 한다.
+`Initialized` 가 거짓이 되는 조건을 가져야 한다.
 
 만약 파드가 [재시작](#파드-재시작-이유)되었다면, 모든 초기화 컨테이너는
 반드시 다시 실행된다.

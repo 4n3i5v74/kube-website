@@ -1,4 +1,7 @@
 ---
+
+
+
 title: 컨테이너 런타임
 content_type: concept
 weight: 20
@@ -119,7 +122,63 @@ sudo apt-get update && sudo apt-get install -y containerd.io
 ```shell
 # containerd 구성
 sudo mkdir -p /etc/containerd
-sudo containerd config default > /etc/containerd/config.toml
+containerd config default | sudo tee /etc/containerd/config.toml
+```
+
+```shell
+# containerd 재시작
+sudo systemctl restart containerd
+```
+{{% /tab %}}
+{{% tab name="Ubuntu 18.04/20.04" %}}
+
+```shell
+# (containerd 설치)
+sudo apt-get update && sudo apt-get install -y containerd
+```
+
+```shell
+# containerd 구성
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
+```
+
+```shell
+# containerd 재시작
+sudo systemctl restart containerd
+```
+{{% /tab %}}
+{{% tab name="Debian 9+" %}}
+
+```shell
+# (containerd 설치)
+## 리포지터리 설정
+### HTTPS를 통해 리포지터리를 사용할 수 있도록 패키지 설치
+sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+```
+
+```shell
+## 도커의 공식 GPG 키 추가
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key --keyring /etc/apt/trusted.gpg.d/docker.gpg add -
+```
+
+```shell
+## 도커 apt 리포지터리 추가
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable"
+```
+
+```shell
+## containerd 설치
+sudo apt-get update && sudo apt-get install -y containerd.io
+```
+
+```shell
+# 기본 containerd 구성 설정
+sudo mkdir -p /etc/containerd
+containerd config default | sudo tee /etc/containerd/config.toml
 ```
 
 ```shell
@@ -151,7 +210,7 @@ sudo yum update -y && sudo yum install -y containerd.io
 ```shell
 ## containerd 구성
 sudo mkdir -p /etc/containerd
-sudo containerd config default > /etc/containerd/config.toml
+containerd config default | sudo tee /etc/containerd/config.toml
 ```
 
 ```shell
@@ -161,13 +220,12 @@ sudo systemctl restart containerd
 {{% /tab %}}
 {{% tab name="Windows (PowerShell)" %}}
 ```powershell
-# (Install containerd)
-# download containerd
-cmd /c curl -OL https://github.com/containerd/containerd/releases/download/v1.4.0-beta.2/containerd-1.4.0-beta.2-windows-amd64.tar.gz
-cmd /c tar xvf .\containerd-1.4.0-beta.2-windows-amd64.tar.gz
+# (containerd 설치)
+# containerd 다운로드
+cmd /c curl -OL https://github.com/containerd/containerd/releases/download/v1.4.1/containerd-1.4.1-windows-amd64.tar.gz
+cmd /c tar xvf .\containerd-1.4.1-windows-amd64.tar.gz
 ```
 
-```shell
 ```powershell
 # 추출 및 구성
 Copy-Item -Path ".\bin\" -Destination "$Env:ProgramFiles\containerd" -Recurse -Force
@@ -210,12 +268,18 @@ kubeadm을 사용하는 경우,
 
 {{< note >}}
 CRI-O 메이저와 마이너 버전은 쿠버네티스 메이저와 마이너 버전이 일치해야 한다.
-더 자세한 정보는 [CRI-O 호환 매트릭스](https://github.com/cri-o/cri-o)를 본다.
+더 자세한 정보는 [CRI-O 호환 매트릭스](https://github.com/cri-o/cri-o#compatibility-matrix-cri-o--kubernetes)를 본다.
 {{< /note >}}
 
 필수 구성 요소를 설치하고 구성한다.
 
 ```shell
+# .conf 파일을 만들어 부팅 시 모듈을 로드한다
+cat <<EOF | sudo tee /etc/modules-load.d/crio.conf
+overlay
+br_netfilter
+EOF
+
 sudo modprobe overlay
 sudo modprobe br_netfilter
 
@@ -242,9 +306,9 @@ sudo sysctl --system
 
 <br />
 그런 다음, `$VERSION` 을 사용자의 쿠버네티스 버전과 일치하는 CRI-O 버전으로 설정한다.
-예를 들어, CRI-O 1.18을 설치하려면, `VERSION=1.18` 로 설정한다.
+예를 들어, CRI-O 1.20을 설치하려면, `VERSION=1.20` 로 설정한다.
 사용자의 설치를 특정 릴리스에 고정할 수 있다.
-버전 1.18.3을 설치하려면, `VERSION=1.18:1.18.3` 을 설정한다.
+버전 1.20.0을 설치하려면, `VERSION=1.20:1.20.0` 을 설정한다.
 <br />
 
 그런 다음, 아래를 실행한다.
@@ -262,6 +326,7 @@ curl -L https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/
 sudo apt-get update
 sudo apt-get install cri-o cri-o-runc
 ```
+
 {{% /tab %}}
 
 {{% tab name="Ubuntu" %}}
@@ -277,9 +342,9 @@ sudo apt-get install cri-o cri-o-runc
 
 <br />
 그런 다음, `$VERSION` 을 사용자의 쿠버네티스 버전과 일치하는 CRI-O 버전으로 설정한다.
-예를 들어, CRI-O 1.18을 설치하려면, `VERSION=1.18` 로 설정한다.
+예를 들어, CRI-O 1.20을 설치하려면, `VERSION=1.20` 로 설정한다.
 사용자의 설치를 특정 릴리스에 고정할 수 있다.
-버전 1.18.3을 설치하려면, `VERSION=1.18:1.18.3` 을 설정한다.
+버전 1.20.0을 설치하려면, `VERSION=1.20:1.20.0` 을 설정한다.
 <br />
 
 그런 다음, 아래를 실행한다.
@@ -311,9 +376,9 @@ apt-get install cri-o cri-o-runc
 
 <br />
 그런 다음, `$VERSION` 을 사용자의 쿠버네티스 버전과 일치하는 CRI-O 버전으로 설정한다.
-예를 들어, CRI-O 1.18을 설치하려면, `VERSION=1.18` 로 설정한다.
+예를 들어, CRI-O 1.20을 설치하려면, `VERSION=1.20` 로 설정한다.
 사용자의 설치를 특정 릴리스에 고정할 수 있다.
-버전 1.18.3을 설치하려면, `VERSION=1.18:1.18.3` 을 설정한다.
+버전 1.20.0을 설치하려면, `VERSION=1.20:1.20.0` 을 설정한다.
 <br />
 
 그런 다음, 아래를 실행한다.
@@ -334,7 +399,7 @@ sudo zypper install cri-o
 {{% tab name="Fedora" %}}
 
 `$VERSION` 을 사용자의 쿠버네티스 버전과 일치하는 CRI-O 버전으로 설정한다.
-예를 들어, CRI-O 1.18을 설치하려면, `VERSION=1.18` 로 설정한다.
+예를 들어, CRI-O 1.20을 설치하려면, `VERSION=1.20` 로 설정한다.
 
 사용할 수 있는 버전을 찾으려면 다음을 실행한다.
 ```shell
@@ -358,14 +423,33 @@ sudo systemctl daemon-reload
 sudo systemctl start crio
 ```
 
-자세한 사항은 [CRI-O 설치 가이드](https://github.com/kubernetes-sigs/cri-o#getting-started)를
+자세한 사항은 [CRI-O 설치 가이드](https://github.com/cri-o/cri-o/blob/master/install.md)를
 참고한다.
+
+
+#### cgroup 드라이버
+
+CRI-O는 기본적으로 systemd cgroup 드라이버를 사용한다. `cgroupfs` cgroup 드라이버로
+전환하려면, `/etc/crio/crio.conf` 를 수정하거나 `/etc/crio/crio.conf.d/02-cgroup-manager.conf` 에
+드롭-인(drop-in) 구성을 배치한다. 예를 들면, 다음과 같다.
+
+```toml
+[crio.runtime]
+conmon_cgroup = "pod"
+cgroup_manager = "cgroupfs"
+```
+
+또한 `cgroupfs` 와 함께 CRI-O를 사용할 때 `pod` 값으로 설정해야 하는
+변경된 `conmon_cgroup` 에 유의한다. 일반적으로 kubelet(일반적으로 kubeadm을 통해 수행됨)과
+CRI-O의 cgroup 드라이버 구성을 동기화 상태로
+유지해야 한다.
 
 ### 도커
 
 각 노드에 도커 CE를 설치한다.
 
-쿠버네티스 릴리스 정보에서 해당 버전의 쿠버네티스와 호환되는 도커 버전을 찾을 수 있다.
+쿠버네티스 릴리스 정보에서 해당 버전의 쿠버네티스와 호환되는
+도커 버전을 찾을 수 있다.
 
 사용자의 시스템에서 다음의 명령을 이용해 도커를 설치한다.
 
@@ -388,7 +472,7 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key --keyring
 ```shell
 # 도커 apt 리포지터리 추가:
 sudo add-apt-repository \
-  deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+  "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
   $(lsb_release -cs) \
   stable"
 ```
@@ -399,6 +483,11 @@ sudo apt-get update && sudo apt-get install -y \
   containerd.io=1.2.13-2 \
   docker-ce=5:19.03.11~3-0~ubuntu-$(lsb_release -cs) \
   docker-ce-cli=5:19.03.11~3-0~ubuntu-$(lsb_release -cs)
+```
+
+```shell
+## /etc/docker 생성
+sudo mkdir /etc/docker
 ```
 
 ```shell

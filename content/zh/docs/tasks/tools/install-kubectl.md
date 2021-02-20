@@ -29,7 +29,7 @@ and view logs. For a complete list of kubectl operations, see
  -->
 使用 Kubernetes 命令行工具 [kubectl](/zh/docs/reference/kubectl/kubectl/)，
 你可以在 Kubernetes 上运行命令。
-使用 kubectl，你可以部署应用、检查和管理集群资源、查看日志。
+使用 kubectl，你可以部署应用、检视和管理集群资源、查看日志。
 要了解 kubectl 操作的完整列表，请参阅
 [kubectl 概览](/zh/docs/reference/kubectl/overview/)。
 
@@ -60,44 +60,97 @@ Using the latest version of kubectl helps avoid unforeseen issues.
 -->
 1. 使用下面命令下载最新的发行版本：
 
-   ```
-   curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+   ```bash
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
    ```
 
    <!--
-   To download a specific version, replace the `$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)` portion of the command with the specific version.
+   To download a specific version, replace the `$(curl -L -s https://dl.k8s.io/release/stable.txt)` portion of the command with the specific version.
 
    For example, to download version {{< param "fullversion" >}} on Linux, type:
    -->
-   要下载特定版本， `$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)`
+   要下载特定版本，将命令中的 `$(curl -L -s https://dl.k8s.io/release/stable.txt)`
    部分替换为指定版本。
 
    例如，要下载 Linux 上的版本 {{< param "fullversion" >}}，输入：
     
    ```
-   curl -LO https://storage.googleapis.com/kubernetes-release/release/{{< param "fullversion" >}}/bin/linux/amd64/kubectl
+   curl -LO https://dl.k8s.io/release/{{< param "fullversion" >}}/bin/linux/amd64/kubectl
    ```
 
 <!--
-2. Make the kubectl binary executable.
+1. Validate the binary (optional)
 -->
-2. 标记 kubectl 文件为可执行：
+2. 验证可执行文件（可选步骤）：
 
+   <!--
+   Download the kubectl checksum file:
+   -->
+   下载 kubectl 校验和文件：
+
+   ```bash
+   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
    ```
-   chmod +x ./kubectl
+
+   <!--
+   Validate the kubectl binary against the checksum file:
+   -->
+   使用校验和文件检查 kubectl 可执行二进制文件：
+
+   ```bash
+   echo "$(<kubectl.sha256) kubectl" | sha256sum --check
    ```
+
+   <!--
+   If valid, the output is:
+   -->
+   如果合法，则输出为：
+
+   ```bash
+   kubectl: OK
+   ```
+
+   <!--
+   If the check fails, `sha256` exits with nonzero status and prints output similar to:
+   -->
+   如果检查失败，则 `sha256` 退出且状态值非 0 并打印类似如下输出：
+
+   ```bash
+   kubectl: FAILED
+   sha256sum: WARNING: 1 computed checksum did NOT match
+   ```
+
+   {{< note >}}
+   <!--
+   Download the same version of the binary and checksum.
+   -->
+   所下载的二进制可执行文件和校验和文件须是同一版本。
+   {{< /note >}}
+
 
 <!--
-3. Move the binary in to your PATH.
+1. Install kubectl
 -->
-3. 将文件放到 PATH 路径下：
+3. 安装 kubectl
 
+   ```bash
+   sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
    ```
-   sudo mv ./kubectl /usr/local/bin/kubectl
+
+   <!--
+   If you do not have root access on the target system, you can still install kubectl to the `~/.local/bin` directory:
+   -->
+   如果你并不拥有目标系统的 root 访问权限，你仍可以将 kubectl 安装到
+   `~/.local/bin` 目录下：
+
+   ```bash
+   mkdir -p ~/.local/bin/kubectl
+   mv ./kubectl ~/.local/bin/kubectl
+   # 之后将 ~/.local/bin/kubectl 添加到环境变量 $PATH 中
    ```
 
 <!--
-4. Test to ensure the version you installed is up-to-date:
+1. Test to ensure the version you installed is up-to-date:
 -->
 4. 测试你所安装的版本是最新的：
 
@@ -118,6 +171,7 @@ echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/
 sudo apt-get update
 sudo apt-get install -y kubectl
 {{< /tab >}}
+
 {{< tab name="CentOS、RHEL 或 Fedora" codelang="bash" >}}
 cat <<EOF > /etc/yum.repos.d/kubernetes.repo
 [kubernetes]
@@ -186,42 +240,95 @@ kubectl version --client
 1. 下载最新发行版本：
 
    ```bash
-   curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/darwin/amd64/kubectl"
+   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl"
    ```
 
    <!--
-   To download a specific version, replace the `$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)` portion of the command with the specific version.
+   To download a specific version, replace the `$(curl -L -s https://dl.k8s.io/release/stable.txt)` portion of the command with the specific version.
 
    For example, to download version {{< param "fullversion" >}} on macOS, type:
    -->
-   要下载特定版本，可将上面命令中的`$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)`
+   要下载特定版本，可将上面命令中的 `$(curl -L -s https://dl.k8s.io/release/stable.txt)`
    部分替换成你想要的版本。
 
    例如，要在 macOS 上安装版本 {{< param "fullversion" >}}，输入：
 
    ```bash
-   curl -LO https://storage.googleapis.com/kubernetes-release/release/{{< param "fullversion" >}}/bin/darwin/amd64/kubectl
+   curl -LO https://dl.k8s.io/release/{{< param "fullversion" >}}/bin/darwin/amd64/kubectl
    ```
 
-   <!-- Make the kubectl binary executable. -->
-   将二进制文件标记为可执行：
+<!--
+1. Validate the binary (optional)
+-->
+2. 检查二进制可执行文件（可选操作）
+
+   <!--
+   Download the kubectl checksum file:
+   -->
+   下载 kubectl 校验和文件：
+
+   ```bash
+   curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/amd64/kubectl.sha256"
+   ```
+
+   <!--
+   Validate the kubectl binary against the checksum file:
+   -->
+   使用校验和文件检查 kubectl 二进制可执行文件：
+
+   ```bash
+   echo "$(<kubectl.sha256)  kubectl" | shasum -a 256 --check
+   ```
+
+   <!--
+   If valid, the output is:
+   -->
+   如果合法，则输出为：
+
+   ```bash
+   kubectl: OK
+   ```
+
+   <!--
+   If the check fails, `shasum` exits with nonzero status and prints output similar to:
+   -->
+   如果检查失败，则 `shasum` 退出且状态值为非 0，并打印类似如下的输出：
+
+   ```bash
+   kubectl: FAILED
+   shasum: WARNING: 1 computed checksum did NOT match
+   ```
+
+   {{< note >}}
+   <!--
+   Download the same version of the binary and checksum.
+   -->
+   下载的二进制可执行文件和校验和文件须为同一版本。
+   {{< /note >}}
+
+<!--
+1. Make the kubectl binary executable.
+-->
+3. 设置 kubectl 二进制文件为可执行模式
 
    ```bash
    chmod +x ./kubectl
    ```
+
 <!--
-3. Move the binary in to your PATH.
+1. Move the kubectl binary to a file location on your system `PATH`.
 -->
-3. 将二进制文件放入 PATH 目录下：
+4. 将 kubectl 二进制文件移动到系统 `PATH` 环境变量中的某个位置：
 
    ```bash
-   sudo mv ./kubectl /usr/local/bin/kubectl
+   sudo mv ./kubectl /usr/local/bin/kubectl && \
+   sudo chown root: /usr/local/bin/kubectl
    ```
 
 <!--
 4. Test to ensure the version you installed is up-to-date:
 -->
-4. 测试以确保所安装的版本是最新的：
+5. 测试以确保所安装的版本是最新的：
 
    ```bash
    kubectl version --client
@@ -256,22 +363,23 @@ If you are on macOS and using [Homebrew](https://brew.sh/) package manager, you 
    ```
 
 <!--
-2. Test to ensure the version you installed is sufficiently up-to-date:
+1. Test to ensure the version you installed is sufficiently up-to-date:
 -->
 2. 测试以确保你安装的版本是最新的：
 
-    ```
+    ```bash
     kubectl version --client
     ```
 
 <!--
-## Install with Macports on macOS
+### Install with Macports on macOS
 
 If you are on macOS and using [Macports](https://macports.org/) package manager, you can install kubectl with Macports.
 -->
-## 在 macOS 上用 Macports 安装 kubectl
+### 在 macOS 上用 Macports 安装 kubectl
 
-如果你使用的是 macOS 系统并使用 [Macports](https://macports.org/) 包管理器，你可以通过 Macports 安装 kubectl。
+如果你使用的是 macOS 系统并使用 [Macports](https://macports.org/) 包管理器，
+你可以通过 Macports 安装 kubectl。
 
 <!--
 1. Run the installation command:
@@ -288,12 +396,12 @@ If you are on macOS and using [Macports](https://macports.org/) package manager,
 -->
 2. 测试以确保你安装的版本是最新的：
 
-   ```
+   ```bash
    kubectl version --client
    ```
 
 <!--
-## Install kubectl on Windows
+## Install kubectl on Windows   {#install-kubectl-on-windows}
 
 ### Install kubectl binary with curl on Windows
 -->
@@ -302,36 +410,74 @@ If you are on macOS and using [Macports](https://macports.org/) package manager,
 ### 在 Windows 上使用 curl 安装 kubectl 二进制文件
 
 <!--
-1. Download the latest release {{< param "fullversion" >}} from [this link](https://storage.googleapis.com/kubernetes-release/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe).
+1. Download the [latest release {{< param "fullversion" >}}](https://dl.k8s.io/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe).
 
    Or if you have `curl` installed, use this command:
 -->
-1. 从[此链接](https://storage.googleapis.com/kubernetes-release/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe)
-   下载最新发行版本 {{< param "fullversion" >}}。
+1. 下载[最新发行版本 {{< param "fullversion" >}}](https://dl.k8s.io/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe)。
 
    或者如何你安装了 `curl`，使用下面的命令：
 
    ```bash
-   curl -LO https://storage.googleapis.com/kubernetes-release/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe
+   curl -LO https://dl.k8s.io/release/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe
    ```
 
    <!--
-   To find out the latest stable version (for example, for scripting), take a look at [https://storage.googleapis.com/kubernetes-release/release/stable.txt](https://storage.googleapis.com/kubernetes-release/release/stable.txt).
+   To find out the latest stable version (for example, for scripting), take a look at [https://dl.k8s.io/release/stable.txt](https://dl.k8s.io/release/stable.txt).
    -->
-   要了解最新的稳定版本（例如，出于脚本编写目的），可查看
-   [https://storage.googleapis.com/kubernetes-release/release/stable.txt](https://storage.googleapis.com/kubernetes-release/release/stable.txt)。
+   要了解哪个是最新的稳定版本（例如，出于脚本编写目的），可查看
+   [https://dl.k8s.io/release/stable.txt](https://dl.k8s.io/release/stable.txt)。
 
 <!--
-2. Add the binary in to your PATH.
+1. Validate the binary (optional)
 -->
-2. 将可执行文件放到 PATH 目录下。
+2. 验证二进制可执行文件（可选操作）
+
+   <!--
+   Download the kubectl checksum file:
+   -->
+   下载 kubectl 校验和文件：
+
+   ```powershell
+   curl -LO https://dl.k8s.io/{{< param "fullversion" >}}/bin/windows/amd64/kubectl.exe.sha256
+   ```
+
+   <!--
+   Validate the kubectl binary against the checksum file:
+   -->
+   使用校验和文件验证 kubectl 可执行二进制文件：
+
+   <!--
+   - Using Command Prompt to manually compare `CertUtil`'s output to the checksum file downloaded:
+   -->
+   - 使用命令行提示符（Commmand Prompt）来手动比较 `CertUtil` 的输出与
+     所下载的校验和文件：
+
+     ```cmd
+     CertUtil -hashfile kubectl.exe SHA256
+     type kubectl.exe.sha256
+     ```
+
+   <!--
+   - Using PowerShell to automate the verification using the `-eq` operator to get a `True` or `False` result:
+   -->
+   - 使用 PowerShell 的 `-eq` 操作符来自动完成校验操作，获得 `True` 或 `False` 结果：
+
+     ```powershell
+     $($(CertUtil -hashfile .\kubectl.exe SHA256)[1] -replace " ", "") -eq $(type .\kubectl.exe.sha256)
+     ```
 
 <!--
-3. Test to ensure the version of `kubectl` is the same as downloaded:
+1. Add the binary in to your PATH.
 -->
-3. 测试以确定所下载的 `kubectl` 版本是正确的的：
+3. 将可执行文件放到 PATH 目录下。
 
-   ```bash
+<!--
+1. Test to ensure the version of `kubectl` is the same as downloaded:
+-->
+4. 测试以确定所下载的 `kubectl` 版本是正确的的：
+
+   ```cmd
    kubectl version --client
    ```
 
@@ -341,49 +487,49 @@ If you have installed Docker Desktop before, you may need to place your PATH ent
 -->
 {{< note >}}
 [Docker Desktop for Windows](https://docs.docker.com/docker-for-windows/#kubernetes)
-会在 PATH 中添加自己的 `kubectl` 程序。
+会将自己的 `kubectl` 程序添加到 PATH 中。
 如果你之前安装过 Docker Desktop，你可能需要将新安装的 PATH 项放到 Docker Desktop
 安装程序所添加的目录之前，或者干脆删除 Docker Desktop 所安装的 `kubectl`。
 {{< /note >}}
 
 <!--
-## Install with Powershell from PSGallery
+## Install with PowerShell from PSGallery
 
-If you are on Windows and using [Powershell Gallery](https://www.powershellgallery.com/) package manager, you can install and update kubectl with Powershell.
+If you are on Windows and using [PowerShell Gallery](https://www.powershellgallery.com/) package manager, you can install and update kubectl with PowerShell.
 -->
 ## 使用 PowerShell 从 PSGallery 安装 kubectl
 
 如果你使用的是 Windows 系统并使用 [Powershell Gallery](https://www.powershellgallery.com/)
-软件包管理器，你可以使用 Powershell 安装和更新 kubectl。
+软件包管理器，你可以使用 PowerShell 安装和更新 kubectl。
 
 <!--
 1. Run the installation commands (making sure to specify a `DownloadLocation`):
 -->
 1. 运行安装命令（确保指定 `DownloadLocation`）：
 
-   ```
-   Install-Script -Name install-kubectl -Scope CurrentUser -Force
-   install-kubectl.ps1 [-DownloadLocation <path>]
+   ```powershell
+   Install-Script -Name 'install-kubectl' -Scope CurrentUser -Force
+   install-kubectl.ps1 [-DownloadLocation <路径名>]
    ```
 
    <!--
-   If you do not specify a `DownloadLocation`, `kubectl` will be installed in the user's temp Directory.
+   If you do not specify a `DownloadLocation`, `kubectl` will be installed in the user's `temp` Directory.
    -->
    {{< note >}}
-   如果你没有指定 `DownloadLocation`，那么 `kubectl` 将安装在用户的临时目录中。
+   如果你没有指定 `DownloadLocation`，那么 `kubectl` 将安装在用户的 `temp` 目录中。
    {{< /note >}}
 
    <!--
    The installer creates `$HOME/.kube` and instructs it to create a config file
    -->
-   安装程序创建 `$ HOME/.kube` 目录，并指示它创建配置文件
+   安装程序创建 `$HOME/.kube` 目录，并指示它创建配置文件
 
 <!--
-2. Test to ensure the version you installed is sufficiently up-to-date:
+2. Test to ensure the version you installed is up-to-date:
 -->
 2. 测试以确保你安装的版本是最新的：
 
-   ```
+   ```powershell
    kubectl version --client
    ```
 
@@ -402,8 +548,6 @@ Updating the installation is performed by rerunning the two commands listed in s
 <!--
 1. To install kubectl on Windows you can use either [Chocolatey](https://chocolatey.org) package manager or [Scoop](https://scoop.sh) command-line installer.
 -->
-
-
 1. 要在 Windows 上用 [Chocolatey](https://chocolatey.org) 或者
    [Scoop](https://scoop.sh) 命令行安装程序安装 kubectl：
 
@@ -421,7 +565,7 @@ Updating the installation is performed by rerunning the two commands listed in s
    {{< /tabs >}}
 
 <!--
-2. Test to ensure the version you installed is up-to-date:
+1. Test to ensure the version you installed is up-to-date:
 -->
 2. 测试以确保你安装的版本是最新的：
 
@@ -430,7 +574,7 @@ Updating the installation is performed by rerunning the two commands listed in s
    ```
 
 <!--
-3. Navigate to your home directory:
+1. Navigate to your home directory:
 -->
 3. 切换到你的 HOME 目录：
 
@@ -440,16 +584,16 @@ Updating the installation is performed by rerunning the two commands listed in s
    ```
 
 <!--
-4. Create the `.kube` directory:
+1. Create the `.kube` directory:
 -->
 4. 创建 `.kube` 目录：
 
-   ```powerhsell
+   ```powershell
    mkdir .kube
    ```
 
 <!--
-5. Change to the .kube directory you just created:
+1. Change to the `.kube` directory you just created:
 -->
 5. 进入到刚刚创建的 `.kube` 目录：
 
@@ -458,7 +602,7 @@ Updating the installation is performed by rerunning the two commands listed in s
    ```
 
 <!--
-6. Configure kubectl to use a remote Kubernetes cluster:
+1. Configure kubectl to use a remote Kubernetes cluster:
 -->
 6. 配置 kubectl 以使用远程 Kubernetes 集群：
 
@@ -485,21 +629,23 @@ kubectl 可以作为 Google Cloud SDK 的一部分进行安装。
 
 <!--
 1. Install the [Google Cloud SDK](https://cloud.google.com/sdk/).
+
 2. Run the `kubectl` installation command:
 -->
 1. 安装 [Google Cloud SDK](https://cloud.google.com/sdk/)。
+
 2. 运行以下命令安装 `kubectl`：
 
-   ```
+   ```shell
    gcloud components install kubectl
    ```
 
 <!--
-3. Test to ensure the version you installed is sufficiently up-to-date:
+3. Test to ensure the version you installed is up-to-date:
 -->
 3. 测试以确保你安装的版本是最新的：
 
-   ```
+   ```shell
    kubectl version --client
    ```
 
@@ -535,24 +681,28 @@ kubectl cluster-info
 <!--
 If you see a URL response, kubectl is correctly configured to access your cluster.
 
-If you see a message similar to the following, kubectl is not correctly configured or not able to connect to a Kubernetes cluster.
+If you see a message similar to the following, kubectl is not configured correctly or is not able to connect to a Kubernetes cluster.
 -->
-如果你看到一个 URL 被返回，那么 kubectl 已经被正确配置，能够正常访问你的 Kubernetes 集群。
+如果你看到一个 URL 被返回，那么 kubectl 已经被正确配置，
+能够正常访问你的 Kubernetes 集群。
 
-如果你看到类似以下的信息被返回，那么 kubectl 没有被正确配置，无法正常访问你的 Kubernetes 集群。
+如果你看到类似以下的信息被返回，那么 kubectl 没有被正确配置，
+无法正常访问你的 Kubernetes 集群。
 
-```shell
+```
 The connection to the server <server-name:port> was refused - did you specify the right host or port?
 ```
 
 <!--
-For example, if you are intending to run a Kubernetes cluster on your laptop (locally), you will need a tool like minikube to be installed first and then re-run the commands stated above.
+For example, if you are intending to run a Kubernetes cluster on your laptop (locally), you will need a tool like Minikube to be installed first and then re-run the commands stated above.
 
 If kubectl cluster-info returns the url response but you can't access your cluster, to check whether it is configured properly, use:
 -->
-例如，如果你打算在笔记本电脑（本地）上运行 Kubernetes 集群，则需要首先安装 minikube 等工具，然后重新运行上述命令。
+例如，如果你打算在笔记本电脑（本地）上运行 Kubernetes 集群，则需要首先安装
+minikube 等工具，然后重新运行上述命令。
 
-如果 kubectl cluster-info 能够返回 URL 响应，但你无法访问你的集群，可以使用下面的命令检查配置是否正确：
+如果 kubectl cluster-info 能够返回 URL 响应，但你无法访问你的集群，可以使用
+下面的命令检查配置是否正确：
 
 ```shell
 kubectl cluster-info dump
@@ -561,7 +711,7 @@ kubectl cluster-info dump
 <!--
 ## Optional kubectl configurations
 
-## Enabling shell autocompletion
+### Enabling shell autocompletion
 
 kubectl provides autocompletion support for Bash and Zsh, which can save you a lot of typing.
 
@@ -803,7 +953,7 @@ You now have to ensure that the kubectl completion script gets sourced in all yo
 实现这点有两种方式：
 
 <!--
-- Source the completion script in your `~/.bashrc` file:
+- Source the completion script in your `~/.bash_profile` file:
 -->
 - 在 `~/.bash_profile` 文件中源引自动补齐脚本
 
@@ -812,12 +962,12 @@ You now have to ensure that the kubectl completion script gets sourced in all yo
   ```
 
 <!--
-- Add the completion script to the `/etc/bash_completion.d` directory:
+- Add the completion script to the `/usr/local/etc/bash_completion.d` directory:
 -->
 - 将自动补齐脚本添加到目录 `/usr/local/etc/bash_completion.d`：
 
   ```bash
-  kubectl completion bash >//usr/local/etc/bash_completion.d/kubectl
+  kubectl completion bash >/usr/local/etc/bash_completion.d/kubectl
   ```
 
 <!--
@@ -867,7 +1017,7 @@ To do so in all your shell sessions, add the following to your `~/.zshrc` file:
 Zsh 的 kubectl 补齐脚本可通过 `kubectl completion zsh` 命令来生成。
 在 Shell 环境中引用自动补齐脚本就可以启用 kubectl 自动补齐。
 
-```shell
+```zsh
 source <(kubectl completion zsh)
 ```
 
@@ -876,7 +1026,7 @@ If you have an alias for kubectl, you can extend shell completion to work with t
 -->
 如果你为 kubectl 命令设置了别名（alias），你可以扩展 Shell 补齐，使之能够与别名一起使用：
 
-```shell
+```zsh
 echo 'alias k=kubectl' >>~/.zshrc
 echo 'complete -F __start_kubectl k' >>~/.zshrc
 ```

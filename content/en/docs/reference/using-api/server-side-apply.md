@@ -16,10 +16,10 @@ min-kubernetes-server-version: 1.16
 
 ## Introduction
 
-Server Side Apply helps users and controllers manage their resources via
-declarative configurations. It allows them to create and/or modify their
+Server Side Apply helps users and controllers manage their resources through
+declarative configurations. Clients can create and modify their
 [objects](/docs/concepts/overview/working-with-objects/kubernetes-objects/)
-declaratively, simply by sending their fully specified intent.
+declaratively by sending their fully specified intent.
 
 A fully specified intent is a partial object that only includes the fields and
 values for which the user has an opinion. That intent either creates a new
@@ -71,7 +71,7 @@ the appliers, results in a conflict. Shared field owners may give up ownership
 of a field by removing it from their configuration.
 
 Field management is stored in a`managedFields` field that is part of an object's
-[`metadata`](/docs/reference/generated/kubernetes-api/{{< latest-version >}}/#objectmeta-v1-meta).
+[`metadata`](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#objectmeta-v1-meta).
 
 A simple example of an object created by Server Side Apply could look like this:
 
@@ -297,7 +297,7 @@ is not what the user wants to happen, even temporarily.
 
 There are two solutions:
 
-- (easy) Leave `replicas` in the configuration; when HPA eventually writes to that
+- (basic) Leave `replicas` in the configuration; when HPA eventually writes to that
   field, the system gives the user a conflict over it. At that point, it is safe
   to remove from the configuration.
 

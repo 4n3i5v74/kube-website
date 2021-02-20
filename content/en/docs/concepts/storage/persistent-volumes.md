@@ -231,7 +231,7 @@ the following types of volumes:
 * Azure Disk
 * Portworx
 * FlexVolumes
-* CSI
+* {{< glossary_tooltip text="CSI" term_id="csi" >}}
 
 You can only expand a PVC if its storage class's `allowVolumeExpansion` field is set to true.
 
@@ -311,7 +311,7 @@ If expanding underlying storage fails, the cluster administrator can manually re
 PersistentVolume types are implemented as plugins. Kubernetes currently supports the following plugins:
 
 * [`awsElasticBlockStore`](/docs/concepts/storage/volumes/#awselasticblockstore) - AWS Elastic Block Store (EBS)
-* [`azureDisk`](/docs/concepts/sotrage/volumes/#azuredisk) - Azure Disk
+* [`azureDisk`](/docs/concepts/storage/volumes/#azuredisk) - Azure Disk
 * [`azureFile`](/docs/concepts/storage/volumes/#azurefile) - Azure File
 * [`cephfs`](/docs/concepts/storage/volumes/#cephfs) - CephFS volume
 * [`cinder`](/docs/concepts/storage/volumes/#cinder) - Cinder (OpenStack block storage)
@@ -487,7 +487,7 @@ The following volume types support mount options:
 * VsphereVolume
 * iSCSI
 
-Mount options are not validated, so mount will simply fail if one is invalid.
+Mount options are not validated. If a mount option is invalid, the mount fails.
 
 In the past, the annotation `volume.beta.kubernetes.io/mount-options` was used instead
 of the `mountOptions` attribute. This annotation is still working; however,
@@ -629,6 +629,11 @@ spec:
 
 PersistentVolumes binds are exclusive, and since PersistentVolumeClaims are namespaced objects, mounting claims with "Many" modes (`ROX`, `RWX`) is only possible within one namespace.
 
+### PersistentVolumes typed `hostPath`
+
+A `hostPath` PersistentVolume uses a file or directory on the Node to emulate network-attached storage.
+See [an example of `hostPath` typed volume](/docs/tasks/configure-pod-container/configure-persistent-volume-storage/#create-a-persistentvolume).
+
 ## Raw Block Volume Support
 
 {{< feature-state for_k8s_version="v1.18" state="stable" >}}
@@ -735,7 +740,7 @@ Only statically provisioned volumes are supported for alpha release. Administrat
 {{< feature-state for_k8s_version="v1.20" state="stable" >}}
 
 Volume snapshots only support the out-of-tree CSI volume plugins. For details, see [Volume Snapshots](/docs/concepts/storage/volume-snapshots/).
-In-tree volume plugins are deprecated. You can read about the deprecated volume plugins in the [Volume Plugin FAQ] (https://github.com/kubernetes/community/blob/master/sig-storage/volume-plugin-faq.md).
+In-tree volume plugins are deprecated. You can read about the deprecated volume plugins in the [Volume Plugin FAQ](https://github.com/kubernetes/community/blob/master/sig-storage/volume-plugin-faq.md).
 
 ### Create a PersistentVolumeClaim from a Volume Snapshot {#create-persistent-volume-claim-from-volume-snapshot}
 

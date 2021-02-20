@@ -22,6 +22,16 @@ weight: 30
 명세나 이미지에 포함될 수 있다. 사용자는 시크릿을 만들 수 있고 시스템도
 일부 시크릿을 만들 수 있다.
 
+{{< caution >}}
+쿠버네티스 시크릿은 기본적으로 암호화되지 않은 base64 인코딩 문자열로 저장된다.
+기본적으로 API 액세스 권한이 있는 모든 사용자 또는 쿠버네티스의 기본 데이터 저장소 etcd에 
+액세스할 수 있는 모든 사용자가 일반 텍스트로 검색 할 수 있다. 
+시크릿을 안전하게 사용하려면 (최소한) 다음과 같이 하는 것이 좋다.
+
+1. 시크릿에 대한 [암호화 활성화](/docs/tasks/administer-cluster/encrypt-data/).
+2. 시크릿 읽기 및 쓰기를 제한하는 [RBAC 규칙 활성화 또는 구성](/docs/reference/access-authn-authz/authorization/). 파드를 만들 권한이 있는 모든 사용자는 시크릿을 암묵적으로 얻을 수 있다.
+{{< /caution >}}
+
 <!-- body -->
 
 ## 시크릿 개요
@@ -134,7 +144,7 @@ data:
 [서비스 어카운트](/docs/tasks/configure-pod-container/configure-service-account/) 문서를 보면
 서비스 어카운트가 동작하는 방법에 대한 더 자세한 정보를 얻을 수 있다.
 또한 파드에서 서비스 어카운트를 참조하는 방법을
-[`Pod`](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#secret-v1-core)의
+[`Pod`](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#pod-v1-core)의
 `automountServiceAccountToken` 필드와 `serviceAccountName`
 필드를 통해 확인할 수 있다.
 
@@ -152,7 +162,7 @@ data:
 인코딩된 `~/.dockercfg` 파일의 콘텐츠를 값으로 가지는 `.dockercfg` 키를 포함하고 있는지
 확실히 확인해야 한다.
 
-`kubernetes/dockerconfigjson` 타입은 `~/.dockercfg` 의
+`kubernetes.io/dockerconfigjson` 타입은 `~/.dockercfg` 의
 새로운 포맷인 `~/.docker/config.json` 파일과 동일한 포맷 법칙을
 따르는 직렬화 된 JSON의 저장을 위해 디자인되었다.
 이 시크릿 타입을 사용할 때는, 시크릿 오브젝트의 `data` 필드가 `.dockerconfigjson` 키를
@@ -269,6 +279,13 @@ SSH 인증 시크릿 타입은 사용자 편의만을 위해서 제공된다.
 API 서버는 요구되는 키가 시크릿 구성에서 제공되고 있는지
 검증도 한다.
 
+{{< caution >}}
+SSH 개인 키는 자체적으로 SSH 클라이언트와 호스트 서버간에 신뢰할 수있는 통신을 
+설정하지 않는다. ConfigMap에 추가된 `known_hosts` 파일과 같은 
+"중간자(man in the middle)" 공격을 완화하려면 신뢰를 설정하는 
+2차 수단이 필요하다.
+{{< /caution >}}
+
 ### TLS 시크릿
 
 쿠버네티스는 보통 TLS를 위해 사용되는 인증서와 관련된 키를 저장하기 위해서
@@ -347,22 +364,21 @@ data:
   usage-bootstrap-signing: dHJ1ZQ==
 ```
 
-부트스트랩 타입은 `data` 아래 명시된 다음의 키들을 가진다.
+부트스트랩 타입 시크릿은 `data` 아래 명시된 다음의 키들을 가진다.
 
-- `token_id`: 토큰 식별자로 임의의 6개 문자의 문자열. 필수 사항.
+- `token-id`: 토큰 식별자로 임의의 6개 문자의 문자열. 필수 사항.
 - `token-secret`: 실제 토큰 시크릿으로 임의의 16개 문자의 문자열. 필수 사항.
-- `description1`: 토큰의 사용처를 설명하는 사람이 읽을 수 있는
+- `description`: 토큰의 사용처를 설명하는 사람이 읽을 수 있는
   문자열. 선택 사항.
 - `expiration`: 토큰이 만료되어야 하는 시기를 명시한 RFC3339를
   사용하는 절대 UTC 시간. 선택 사항.
 - `usage-bootstrap-<usage>`: 부트스트랩 토큰의 추가적인 사용처를 나타내는
   불리언(boolean) 플래그.
-- `auth-extra-groups`: system:bootstrappers 그룹에 추가로 인증될
+- `auth-extra-groups`: `system:bootstrappers` 그룹에 추가로 인증될
   쉼표로 구분된 그룹 이름 목록.
 
 위의 YAML은 모두 base64로 인코딩된 문자열 값이므로 혼란스러워 보일
-수 있다. 사실은 다음 YAML을 사용하여 동일한 시크릿 오브젝트 결과를 만드는
-동일한 시크릿을 생성할 수 있다.
+수 있다. 사실은 다음 YAML을 사용하여 동일한 시크릿을 생성할 수 있다.
 
 ```yaml
 apiVersion: v1
@@ -724,6 +740,11 @@ echo $SECRET_PASSWORD
 1f2d1e2e67df
 ```
 
+#### 시크릿 업데이트 후 환경 변수가 업데이트되지 않음
+
+컨테이너가 환경 변수에서 이미 시크릿을 사용하는 경우, 다시 시작하지 않는 한 컨테이너에서 시크릿 업데이트를 볼 수 없다.
+시크릿이 변경될 때 재시작을 트리거하는 써드파티 솔루션이 있다.
+
 ## 변경할 수 없는(immutable) 시크릿 {#secret-immutable}
 
 {{< feature-state for_k8s_version="v1.19" state="beta" >}}
@@ -763,7 +784,7 @@ immutable: true
 `imagePullSecrets` 필드는 동일한 네임스페이스의 시크릿에 대한 참조 목록이다.
 `imagePullSecretsDocker` 를 사용하여 도커(또는 다른 컨테이너) 이미지 레지스트리
 비밀번호가 포함된 시크릿을 kubelet에 전달할 수 있다. kubelet은 이 정보를 사용해서 파드를 대신하여 프라이빗 이미지를 가져온다.
-`imagePullSecrets` 필드에 대한 자세한 정보는 [PodSpec API](/docs/reference/generated/kubernetes-api/{{< latest-version >}}/#podspec-v1-core)를 참고한다.
+`imagePullSecrets` 필드에 대한 자세한 정보는 [PodSpec API](/docs/reference/generated/kubernetes-api/{{< param "version" >}}/#podspec-v1-core)를 참고한다.
 
 #### imagePullSecret 수동으로 지정하기
 
@@ -782,7 +803,6 @@ immutable: true
 
 수동으로 생성된 시크릿(예: GitHub 계정에 접근하기 위한 토큰이 포함된 시크릿)은
 시크릿의 서비스 어카운트를 기반한 파드에 자동으로 연결될 수 있다.
-해당 프로세스에 대한 자세한 설명은 [파드프리셋(PodPreset)을 사용하여 파드에 정보 주입하기](/docs/tasks/inject-data-application/podpreset/)를 참고한다.
 
 ## 상세 내용
 
@@ -1229,3 +1249,4 @@ API 서버에서 kubelet으로의 통신은 SSL/TLS로 보호된다.
 - [`kubectl` 을 사용한 시크릿 관리](/docs/tasks/configmap-secret/managing-secret-using-kubectl/)하는 방법 배우기
 - [구성 파일을 사용한 시크릿 관리](/docs/tasks/configmap-secret/managing-secret-using-config-file/)하는 방법 배우기
 - [kustomize를 사용한 시크릿 관리](/docs/tasks/configmap-secret/managing-secret-using-kustomize/)하는 방법 배우기
+

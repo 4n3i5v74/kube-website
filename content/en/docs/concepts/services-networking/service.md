@@ -134,7 +134,7 @@ For example:
 * You want to point your Service to a Service in a different
   {{< glossary_tooltip term_id="namespace" >}} or on another cluster.
 * You are migrating a workload to Kubernetes. While evaluating the approach,
-  you run only a proportion of your backends in Kubernetes.
+  you run only a portion of your backends in Kubernetes.
 
 In any of these scenarios you can define a Service _without_ a Pod selector.
 For example:
@@ -151,9 +151,9 @@ spec:
       targetPort: 9376
 ```
 
-Because this Service has no selector, the corresponding Endpoint object is not
+Because this Service has no selector, the corresponding Endpoints object is not
 created automatically. You can manually map the Service to the network address and port
-where it's running, by adding an Endpoint object manually:
+where it's running, by adding an Endpoints object manually:
 
 ```yaml
 apiVersion: v1
@@ -238,7 +238,7 @@ There are a few reasons for using proxying for Services:
 
 ### User space proxy mode {#proxy-mode-userspace}
 
-In this mode, kube-proxy watches the Kubernetes master for the addition and
+In this mode, kube-proxy watches the Kubernetes control plane for the addition and
 removal of Service and Endpoint objects. For each Service it opens a
 port (randomly chosen) on the local node.  Any connections to this "proxy port"
 are proxied to one of the Service's backend Pods (as reported via
@@ -430,7 +430,7 @@ Services by their DNS name.
 For example, if you have a Service called `my-service` in a Kubernetes
 namespace `my-ns`, the control plane and the DNS Service acting together
 create a DNS record for `my-service.my-ns`. Pods in the `my-ns` namespace
-should be able to find it by simply doing a name lookup for `my-service`
+should be able to find the service by doing a name lookup for `my-service`
 (`my-service.my-ns` would also work).
 
 Pods in other namespaces must qualify the name as `my-service.my-ns`. These names
@@ -463,7 +463,7 @@ selectors defined:
 
 For headless Services that define selectors, the endpoints controller creates
 `Endpoints` records in the API, and modifies the DNS configuration to return
-records (addresses) that point directly to the `Pods` backing the `Service`.
+A records (IP addresses) that point directly to the `Pods` backing the `Service`.
 
 ### Without selectors
 
@@ -1163,7 +1163,7 @@ rule kicks in, and redirects the packets to the proxy's own port.
 The "Service proxy" chooses a backend, and starts proxying traffic from the client to the backend.
 
 This means that Service owners can choose any port they want without risk of
-collision.  Clients can simply connect to an IP and port, without being aware
+collision.  Clients can connect to an IP and port, without being aware
 of which Pods they are actually accessing.
 
 #### iptables
